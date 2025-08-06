@@ -196,6 +196,15 @@ const Onboarding = () => {
                     </button>
                   ))}
                 </div>
+                
+                <div className="flex justify-center pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate('/dashboard')}
+                  >
+                    Back to Dashboard
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
