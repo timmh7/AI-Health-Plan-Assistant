@@ -102,6 +102,8 @@ const Onboarding = () => {
           user_id: user.id,
           email: user.email,
           full_name: user.user_metadata?.full_name || user.user_metadata?.name,
+        }, {
+          onConflict: 'user_id',
         });
 
       if (profileError) throw profileError;
