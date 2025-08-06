@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// 1. Setup the data scheme for the user
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -12,7 +13,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// 2. Fill in the data
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // Keep track of the user + session
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // 3. Login function
   const signInWithGoogle = async () => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -52,6 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // 4. Logout function
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -67,6 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
   };
 
+  // 5. Share data with app
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

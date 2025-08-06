@@ -14,6 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
+      // 1. Table definition for insurance companies
       insurance_companies: {
         Row: {
           created_at: string
@@ -35,6 +36,8 @@ export type Database = {
         }
         Relationships: []
       }
+
+      // 2. Table definition for insurance plans
       insurance_plans: {
         Row: {
           company_id: string
@@ -70,6 +73,8 @@ export type Database = {
           },
         ]
       }
+
+      // 3. Table definition for profiles
       profiles: {
         Row: {
           created_at: string
@@ -97,6 +102,8 @@ export type Database = {
         }
         Relationships: []
       }
+
+      // 4. Table definition for user insurance
       user_insurance: {
         Row: {
           company_id: string

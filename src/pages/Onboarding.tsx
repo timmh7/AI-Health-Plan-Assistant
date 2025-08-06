@@ -32,10 +32,12 @@ const Onboarding = () => {
   const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [selectedPlan, setSelectedPlan] = useState<string>('');
 
+  // 1. On render fetch all companies from our current database
   useEffect(() => {
     fetchCompanies();
   }, []);
 
+  // Helper function to grab companies
   const fetchCompanies = async () => {
     try {
       const { data, error } = await supabase
@@ -55,6 +57,7 @@ const Onboarding = () => {
     }
   };
 
+  // Helper function to grab insurance company's plans
   const fetchPlans = async (companyId: string) => {
     try {
       const { data, error } = await supabase
@@ -75,6 +78,7 @@ const Onboarding = () => {
     }
   };
 
+  // 2. Set the selected company and then fetch the corresponding plans
   const handleCompanySelect = async (companyId: string) => {
     setSelectedCompany(companyId);
     setSelectedPlan('');
@@ -82,6 +86,9 @@ const Onboarding = () => {
     setStep(2);
   };
 
+  // 3. Complete user's insurance plan setup by:
+  //    1. Creating or updating the user's plans in supabase
+  //    2. Redirecting to dashboard accordingly or display error message
   const handleComplete = async () => {
     if (!user || !selectedCompany || !selectedPlan) return;
 
@@ -106,6 +113,8 @@ const Onboarding = () => {
           user_id: user.id,
           company_id: selectedCompany,
           plan_id: selectedPlan,
+          }, {
+            onConflict: 'user_id',
         });
 
       if (insuranceError) throw insuranceError;
@@ -166,7 +175,7 @@ const Onboarding = () => {
                   {companies.map((company) => (
                     <button
                       key={company.id}
-                      onClick={() => handleCompanySelect(company.id)}
+                      onClick={() => handleCompanySelect(company.id)} // Handle storing company when selected
                       className="p-6 border-2 border-border rounded-lg hover:border-primary hover:shadow-[var(--shadow-hover)] transition-[var(--transition-healthcare)] text-left space-y-3"
                     >
                       <div className="flex items-center space-x-3">
