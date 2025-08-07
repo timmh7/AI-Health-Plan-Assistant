@@ -29,7 +29,10 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<InsuranceCompany[]>([]);
   const [plans, setPlans] = useState<InsurancePlan[]>([]);
+
+  // Store insurance company, metal level, and plan
   const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [selectedMetalLevel, setSelectedMetalLevel] = useState<string>('');
   const [selectedPlan, setSelectedPlan] = useState<string>('');
 
   // 1. On render fetch all companies from our current database
@@ -78,19 +81,27 @@ const Onboarding = () => {
     }
   };
 
-  // 2. Set the selected company and then fetch the corresponding plans
+  // 2. Set the selected company, metal level, and plan
   const handleCompanySelect = async (companyId: string) => {
     setSelectedCompany(companyId);
+    setSelectedMetalLevel('');
     setSelectedPlan('');
-    await fetchPlans(companyId);
     setStep(2);
   };
 
-  // 3. Complete user's insurance plan setup by:
+  // 3. Set the selected metal level, fetch plans, and move to plan selection
+  const handleMetalLevelSelect = async (metalLevel: string) => {
+    setSelectedMetalLevel(metalLevel);
+    setSelectedPlan('');
+    await fetchPlans(selectedCompany);
+    setStep(3);
+  };
+
+  // 4. Complete user's insurance plan setup by:
   //    1. Creating or updating the user's plans in supabase
   //    2. Redirecting to dashboard accordingly or display error message
   const handleComplete = async () => {
-    if (!user || !selectedCompany || !selectedPlan) return;
+    if (!user || !selectedCompany || !selectedMetalLevel || !selectedPlan) return;
 
     try {
       setLoading(true);
@@ -114,6 +125,7 @@ const Onboarding = () => {
         .upsert({
           user_id: user.id,
           company_id: selectedCompany,
+          metal_level: selectedMetalLevel,
           plan_id: selectedPlan,
           }, {
             onConflict: 'user_id',
@@ -161,6 +173,8 @@ const Onboarding = () => {
             <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`w-8 h-px ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`w-8 h-px ${step >= 3 ? 'bg-primary' : 'bg-muted'}`} />
+            <div className={`w-3 h-3 rounded-full ${step >= 3 ? 'bg-primary' : 'bg-muted'}`} />
           </div>
 
           {/* Step 1: Insurance Company */}
@@ -209,13 +223,90 @@ const Onboarding = () => {
             </Card>
           )}
 
-          {/* Step 2: Insurance Plan */}
+          {/* Step 2: Metal Level */}
           {step === 2 && (
+            <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
+              <CardHeader className="text-center">
+                <CardTitle>Select your metal level</CardTitle>
+                <CardDescription>
+                  Choose the coverage level that best fits your needs
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {selectedCompanyData && (
+                  <div className="flex items-center justify-center space-x-3 p-4 bg-accent rounded-lg">
+                    <img
+                      src={selectedCompanyData.logo_url}
+                      alt={selectedCompanyData.name}
+                      className="w-8 h-8 object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                    <span className="font-medium text-accent-foreground">{selectedCompanyData.name}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-4">
+                  {[
+                    { 
+                      value: 'expanded_bronze', 
+                      name: 'Expanded Bronze', 
+                      description: 'Lower premiums, higher deductibles. Good for healthy individuals.',
+                      emoji: '🥉'
+                    },
+                    { 
+                      value: 'silver', 
+                      name: 'Silver', 
+                      description: 'Balanced premiums and deductibles. Most popular choice.',
+                      emoji: '🥈'
+                    },
+                    { 
+                      value: 'gold', 
+                      name: 'Gold', 
+                      description: 'Higher premiums, lower deductibles. Good for frequent care.',
+                      emoji: '🥇'
+                    }
+                  ].map((level) => (
+                    <button
+                      key={level.value}
+                      onClick={() => handleMetalLevelSelect(level.value)}
+                      className={`p-6 border-2 rounded-lg transition-[var(--transition-healthcare)] text-left space-y-3 ${
+                        selectedMetalLevel === level.value 
+                          ? 'border-primary bg-primary/5 shadow-[var(--shadow-hover)]' 
+                          : 'border-border hover:border-primary hover:shadow-[var(--shadow-hover)]'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{level.emoji}</div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground">{level.name}</h3>
+                          <p className="text-sm text-muted-foreground">{level.description}</p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(1)}
+                  >
+                    Back
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Step 3: Insurance Plan */}
+          {step === 3 && (
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
               <CardHeader className="text-center">
                 <CardTitle>Select your insurance plan</CardTitle>
                 <CardDescription>
-                  Choose your specific plan with {selectedCompanyData?.name}
+                  Choose your specific {selectedMetalLevel?.replace('_', ' ')} plan with {selectedCompanyData?.name}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -254,7 +345,7 @@ const Onboarding = () => {
                 <div className="flex justify-between">
                   <Button
                     variant="outline"
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(2)}
                   >
                     Back
                   </Button>
