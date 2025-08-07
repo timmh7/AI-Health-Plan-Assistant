@@ -7,161 +7,19 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
-  }
+    PostgrestVersion: "12.2.12 (cd3cf9e)";
+  };
   public: {
-    Tables: {
-      // 1. Table definition for insurance companies
-      insurance_companies: {
-        Row: {
-          created_at: string
-          id: string
-          logo_url: string | null
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          name?: string
-        }
-        Relationships: []
-      }
+    Tables: Record<string, unknown>;
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+};
 
-      // 2. Table definition for insurance plans
-      insurance_plans: {
-        Row: {
-          company_id: string
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          plan_type: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          plan_type: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          plan_type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "insurance_plans_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "insurance_companies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-
-      // 3. Table definition for profiles
-      profiles: {
-        Row: {
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-
-      // 4. Table definition for user insurance
-      user_insurance: {
-        Row: {
-          company_id: string
-          created_at: string
-          id: string
-          plan_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          company_id: string
-          created_at?: string
-          id?: string
-          plan_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          company_id?: string
-          created_at?: string
-          id?: string
-          plan_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_insurance_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "insurance_companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_insurance_plan_id_fkey"
-            columns: ["plan_id"]
-            isOneToOne: false
-            referencedRelation: "insurance_plans"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
+// Auto generated types by Supabase
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
