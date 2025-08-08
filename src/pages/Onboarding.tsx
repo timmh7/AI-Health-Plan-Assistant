@@ -15,9 +15,10 @@ interface InsuranceCompany {
 }
 
 interface InsurancePlan {
-  id: string;
-  name: string;
+  plan_id: string;
+  plan_name: string;
   plan_type: string;
+  plan_number: string;
   description: string;
 }
 
@@ -37,8 +38,11 @@ const Onboarding = () => {
 
   // 1. On render fetch all companies from our current database
   useEffect(() => {
+      if (selectedPlan) {
+    console.log("Selected plan ID:", selectedPlan);
+      }
     fetchCompanies();
-  }, []);
+  }, [selectedPlan]);
 
   // Helper function to grab companies
   const fetchCompanies = async () => {
@@ -61,16 +65,21 @@ const Onboarding = () => {
   };
 
   // Helper function to grab insurance company's plans
-  const fetchPlans = async (companyId: string) => {
+  const fetchPlans = async (company_name: string, metal_level: string) => {
     try {
       const { data, error } = await supabase
         .from('insurance_plans')
         .select('*')
-        .eq('company_id', companyId)
-        .order('name');
+        .eq('company', company_name)
+        .eq('metal_level', metal_level)
+        .order('plan_name');
 
-      if (error) throw error;
-      setPlans(data || []);
+      if (error) {
+        throw error;
+      } else {
+        console.log(data);
+        setPlans(data || []);
+      }
     } catch (error) {
       console.error('Error fetching plans:', error);
       toast({
@@ -82,18 +91,17 @@ const Onboarding = () => {
   };
 
   // 2. Set the selected company, metal level, and plan
-  const handleCompanySelect = async (companyId: string) => {
-    setSelectedCompany(companyId);
+  const handleCompanySelect = async (company_name: string) => {
+    setSelectedCompany(company_name);
     setSelectedMetalLevel('');
-    setSelectedPlan('');
     setStep(2);
   };
 
   // 3. Set the selected metal level, fetch plans, and move to plan selection
-  const handleMetalLevelSelect = async (metalLevel: string) => {
-    setSelectedMetalLevel(metalLevel);
-    setSelectedPlan('');
-    await fetchPlans(selectedCompany);
+  const handleMetalLevelSelect = async (metal_level: string) => {
+    console.log(metal_level)
+    setSelectedMetalLevel(metal_level);
+    await fetchPlans(selectedCompany, metal_level);
     setStep(3);
   };
 
@@ -124,8 +132,7 @@ const Onboarding = () => {
         .from('user_insurance')
         .upsert({
           user_id: user.id,
-          company_id: selectedCompany,
-          metal_level: selectedMetalLevel,
+          company_name: selectedCompany,
           plan_id: selectedPlan,
           }, {
             onConflict: 'user_id',
@@ -187,29 +194,48 @@ const Onboarding = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {companies.map((company) => (
-                    <button
-                      key={company.id}
-                      onClick={() => handleCompanySelect(company.id)} // Handle storing company when selected
-                      className="p-6 border-2 border-border rounded-lg hover:border-primary hover:shadow-[var(--shadow-hover)] transition-[var(--transition-healthcare)] text-left space-y-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={company.logo_url}
-                          alt={company.name}
-                          className="w-10 h-10 object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        <div>
-                          <h3 className="font-semibold text-foreground">{company.name}</h3>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                {/* Group companies by first letter */}
+                {Object.entries(
+                  companies.reduce((acc, company) => {
+                    const firstLetter = company.name.charAt(0).toUpperCase();
+                    if (!acc[firstLetter]) {
+                      acc[firstLetter] = [];
+                    }
+                    acc[firstLetter].push(company);
+                    return acc;
+                  }, {} as Record<string, InsuranceCompany[]>)
+                )
+                .sort(([a], [b]) => a.localeCompare(b))
+                .map(([letter, companiesInSection]) => (
+                  <div key={letter} className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
+                      {letter}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {companiesInSection.map((company) => (
+                        <button
+                          key={company.id}
+                          onClick={() => handleCompanySelect(company.name)} // Handle storing company when selected
+                          className="p-6 border-2 border-border rounded-lg hover:border-primary hover:shadow-[var(--shadow-hover)] transition-[var(--transition-healthcare)] text-left space-y-3"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={company.logo_url}
+                              alt={company.name}
+                              className="w-10 h-10 object-contain"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                            <div>
+                              <h3 className="font-semibold text-foreground">{company.name}</h3>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
                 
                 <div className="flex justify-center pt-4">
                   <Button
@@ -250,29 +276,31 @@ const Onboarding = () => {
                 <div className="grid grid-cols-1 gap-4">
                   {[
                     { 
-                      value: 'expanded_bronze', 
                       name: 'Expanded Bronze', 
                       description: 'Lower premiums, higher deductibles. Good for healthy individuals.',
                       emoji: '🥉'
                     },
                     { 
-                      value: 'silver', 
                       name: 'Silver', 
                       description: 'Balanced premiums and deductibles. Most popular choice.',
                       emoji: '🥈'
                     },
                     { 
-                      value: 'gold', 
                       name: 'Gold', 
                       description: 'Higher premiums, lower deductibles. Good for frequent care.',
                       emoji: '🥇'
+                    },
+                    { 
+                      name: 'Platinum', 
+                      description: 'Highest premiums, lowest deductibles. Maximum coverage.',
+                      emoji: '💎'
                     }
                   ].map((level) => (
                     <button
-                      key={level.value}
-                      onClick={() => handleMetalLevelSelect(level.value)}
+                      key={level.name}
+                      onClick={() => handleMetalLevelSelect(level.name)}
                       className={`p-6 border-2 rounded-lg transition-[var(--transition-healthcare)] text-left space-y-3 ${
-                        selectedMetalLevel === level.value 
+                        selectedMetalLevel === level.name
                           ? 'border-primary bg-primary/5 shadow-[var(--shadow-hover)]' 
                           : 'border-border hover:border-primary hover:shadow-[var(--shadow-hover)]'
                       }`}
@@ -329,16 +357,24 @@ const Onboarding = () => {
                     <SelectValue placeholder="Choose your insurance plan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {plans.map((plan) => (
-                      <SelectItem key={plan.id} value={plan.id}>
-                        <div className="text-left">
-                          <div className="font-medium">{plan.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {plan.plan_type} • {plan.description}
+                    {plans.length > 0 ? (
+                      plans.map((plan) => (
+                        <SelectItem value={plan.plan_id}>
+                          <div className="text-left">
+                            <div className="font-medium">{plan.plan_name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {plan.plan_type} • Plan #{plan.plan_number}
+                            </div>
                           </div>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="no-plans" disabled>
+                        <div className="text-left">
+                          No plans available for this combination
                         </div>
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
 

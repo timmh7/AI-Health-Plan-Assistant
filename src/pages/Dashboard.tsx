@@ -8,23 +8,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useNavigate } from 'react-router-dom';
 
-interface UserProfile {
+// Defined type for user profile
+type UserProfile = {
   full_name: string;
   email: string;
   company_name: string;
   company_logo_url: string;
   plan_name: string;
   plan_type: string;
-  plan_description: string;
+  plan_number: string;
 }
 
 const Dashboard = () => {
+  // Dashboard variables
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user profile on render
   useEffect(() => {
     if (user) {
       fetchUserProfile();
@@ -33,21 +36,23 @@ const Dashboard = () => {
 
   const fetchUserProfile = async () => {
     try {
-      // First get the profile
+      // First, get user's profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('full_name, email')
         .eq('user_id', user?.id)
         .single();
 
+      // Error handling for getting profile
       if (profileError && profileError.code === 'PGRST116') {
+        console.log("No profile found, redirecting to onboarding...");
         navigate('/onboarding');
         return;
+      } else if (profileError) {
+         throw profileError;
       }
 
-      if (profileError) throw profileError;
-
-      // Then get the insurance information
+      // Second, get user's insurance
       const { data: insuranceData, error: insuranceError } = await supabase
         .from('user_insurance')
         .select(`
@@ -56,35 +61,37 @@ const Dashboard = () => {
             logo_url
           ),
           insurance_plans (
-            name,
+            plan_name,
             plan_type,
-            description
+            plan_number
           )
         `)
-        .eq('user_id', user?.id)
+        .eq('user_id', user?.id) // user_insurance.user_id = user.id
         .single();
 
+      // Handle errors
       if (insuranceError && insuranceError.code === 'PGRST116') {
         navigate('/onboarding');
         return;
-      }
-
-      if (insuranceError) throw insuranceError;
-
-      if (!insuranceData) {
+      } else if (insuranceError) {
+        throw insuranceError;
+      } else if (!insuranceData) {
         navigate('/onboarding');
         return;
       }
 
+      // helper function to set the user's dashboard profile + insurance
       setProfile({
         full_name: profileData.full_name || 'User',
         email: profileData.email || user?.email || '',
         company_name: (insuranceData.insurance_companies as any).name,
         company_logo_url: (insuranceData.insurance_companies as any).logo_url,
-        plan_name: (insuranceData.insurance_plans as any).name,
+        plan_name: (insuranceData.insurance_plans as any).plan_name,
         plan_type: (insuranceData.insurance_plans as any).plan_type,
-        plan_description: (insuranceData.insurance_plans as any).description,
+        plan_number: (insuranceData.insurance_plans as any).plan_number,
+        //plan_description: (insuranceData.insurance_plans as any).description,
       });
+
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -209,14 +216,14 @@ const Dashboard = () => {
                   />
                   <div>
                     <h3 className="font-semibold">{profile?.company_name}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary">{profile?.plan_type}</Badge>
-                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <p className="font-medium">{profile?.plan_name}</p>
-                  <p className="text-sm text-muted-foreground">{profile?.plan_description}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-muted-foreground">Plan Number: {profile?.plan_number}</p>
+                    <Badge variant="secondary">{profile?.plan_type}</Badge>
+                  </div>
                 </div>
               </CardContent>
             </Card>
