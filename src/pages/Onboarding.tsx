@@ -187,7 +187,15 @@ const Onboarding = () => {
           {/* Step 1: Insurance Company */}
           {step === 1 && (
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
-              <CardHeader className="text-center">
+              <CardHeader className="text-center relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/dashboard')}
+                  className="absolute left-0 top-0 p-2 text-3xl hover:bg-transparent hover:text-inherit hover:text-blue-500"
+                >
+                  ←
+                </Button>
                 <CardTitle>Select your insurance company</CardTitle>
                 <CardDescription>
                   Choose your current health insurance provider
@@ -216,13 +224,14 @@ const Onboarding = () => {
                         <button
                           key={company.id}
                           onClick={() => handleCompanySelect(company.name)} // Handle storing company when selected
-                          className="p-6 border-2 border-border rounded-lg hover:border-primary hover:shadow-[var(--shadow-hover)] transition-[var(--transition-healthcare)] text-left space-y-3"
+                          className="p-6 border-2 border-border rounded-lg hover:border-primary hover:shadow-[var(--shadow-hover)]
+                                     transition-[var(--transition-healthcare)] text-left space-y-3"
                         >
                           <div className="flex items-center space-x-3">
                             <img
                               src={company.logo_url}
                               alt={company.name}
-                              className="w-10 h-10 object-contain"
+                              className="w-12 h-12 object-contain"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = 'none';
                               }}
@@ -236,15 +245,6 @@ const Onboarding = () => {
                     </div>
                   </div>
                 ))}
-                
-                <div className="flex justify-center pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    Back to Dashboard
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
@@ -252,7 +252,15 @@ const Onboarding = () => {
           {/* Step 2: Metal Level */}
           {step === 2 && (
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
-              <CardHeader className="text-center">
+              <CardHeader className="text-center relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep(1)}
+                  className="absolute left-0 top-0 p-2 text-3xl hover:bg-transparent hover:text-inherit hover:text-blue-500"
+                >
+                  ←
+                </Button>
                 <CardTitle>Select your metal level</CardTitle>
                 <CardDescription>
                   Choose the coverage level that best fits your needs
@@ -315,15 +323,6 @@ const Onboarding = () => {
                     </button>
                   ))}
                 </div>
-
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                  >
-                    Back
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
@@ -331,7 +330,15 @@ const Onboarding = () => {
           {/* Step 3: Insurance Plan */}
           {step === 3 && (
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
-              <CardHeader className="text-center">
+              <CardHeader className="text-center relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep(2)}
+                  className="absolute left-0 top-0 p-2 text-3xl hover:bg-transparent hover:text-inherit hover:text-blue-500"
+                >
+                  ←
+                </Button>
                 <CardTitle>Select your insurance plan</CardTitle>
                 <CardDescription>
                   Choose your specific {selectedMetalLevel?.replace('_', ' ')} plan with {selectedCompanyData?.name}
@@ -378,13 +385,7 @@ const Onboarding = () => {
                   </SelectContent>
                 </Select>
 
-                <div className="flex justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={() => setStep(2)}
-                  >
-                    Back
-                  </Button>
+                <div className="flex justify-center">
                   <Button
                     variant="healthcare"
                     onClick={handleComplete}
