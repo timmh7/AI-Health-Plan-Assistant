@@ -50,7 +50,6 @@ const Dashboard = () => {
         .single();
 
       if (error) throw error;
-      console.log(data);
 
       // Step 2: Extract the URL
       const sobUrl = (data.insurance_plans as any)?.sob_url;
@@ -63,17 +62,24 @@ const Dashboard = () => {
       if (!response.ok) throw new Error("Failed to fetch SOB PDF");
       const blob = await response.blob();
 
-      // Step 4: Convert Blob → Base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob); // Data URL includes MIME type
+      // Step 4: Send PDF blob for parsing
+      const formData = new FormData();
+      formData.append('file', blob, 'sob.pdf');
+
+      const resp = await fetch('http://localhost:3001/api/extract-pdf', {
+        method: 'POST',
+        body: formData,
       });
-      
-      // Step 5: Store in localStorage
-      localStorage.setItem("user-sob", base64);
-      console.log("SOB PDF stored in localStorage");
+
+      if (!resp.ok) throw new Error('Failed to extract PDF');
+
+      const result = await resp.json();
+
+      if (result.success) {
+        console.log('Extraction result (base64 zip):', result.data);
+
+        // TODO: Unzip and parse JSON on client or send to your chatbot context
+      }
     } catch (err) {
       console.error("Error fetching user SOB:", err);
     }
