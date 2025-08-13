@@ -31,8 +31,54 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchUserProfile();
+      fetchUserSOB(user.id);
     }
   }, [user]);
+
+  // Helper function that downloads user's SOB onto local browser storage
+  const fetchUserSOB = async (userId: string) => {
+    try {
+      // Step 1: Query for sob_url
+      const { data, error } = await supabase
+        .from("user_insurance")
+        .select(`
+          insurance_plans (
+            sob_url
+          )
+        `)
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+      console.log(data);
+
+      // Step 2: Extract the URL
+      const sobUrl = (data.insurance_plans as any)?.sob_url;
+      console.log("sobURL: " + sobUrl)
+      if (!sobUrl) throw new Error("No SOB URL found for user");
+
+      // Step 3: Download the PDF using CORS proxy
+      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(sobUrl)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("Failed to fetch SOB PDF");
+      const blob = await response.blob();
+
+      // Step 4: Convert Blob → Base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob); // Data URL includes MIME type
+      });
+      
+      // Step 5: Store in localStorage
+      localStorage.setItem("user-sob", base64);
+      console.log("SOB PDF stored in localStorage");
+    } catch (err) {
+      console.error("Error fetching user SOB:", err);
+    }
+  };
+
 
   const fetchUserProfile = async () => {
     try {
