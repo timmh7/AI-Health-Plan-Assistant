@@ -35,7 +35,7 @@ const Dashboard = () => {
     }
   }, [user]);
 
-  // Helper function that downloads user's SOB onto local browser storage
+  // Helper function that sends user's SOB URL for processing
   const fetchUserSOB = async (userId: string) => {
     try {
       // Step 1: Query for sob_url
@@ -56,30 +56,22 @@ const Dashboard = () => {
       console.log("sobURL: " + sobUrl)
       if (!sobUrl) throw new Error("No SOB URL found for user");
 
-      // Step 3: Download the PDF using CORS proxy
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(sobUrl)}`;
-      const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error("Failed to fetch SOB PDF");
-      const blob = await response.blob();
-
-      // Step 4: Send PDF blob for parsing
-      const formData = new FormData();
-      formData.append('file', blob, 'sob.pdf');
-
+      // Step 3: Send PDF URL for parsing
+      console.log("Now attempting to parse PDF...")
       const resp = await fetch('http://localhost:3001/api/extract-pdf', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pdfUrl: sobUrl }),
       });
 
       if (!resp.ok) throw new Error('Failed to extract PDF');
 
       const result = await resp.json();
+      console.log('Extraction result:', result);
 
-      if (result.success) {
-        console.log('Extraction result (base64 zip):', result.data);
-
-        // TODO: Unzip and parse JSON on client or send to your chatbot context
-      }
+        // TODO: Parse JSON and send to your chatbot context
     } catch (err) {
       console.error("Error fetching user SOB:", err);
     }
