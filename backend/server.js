@@ -1,6 +1,9 @@
 import express from 'express';
 import { spawn } from 'child_process';  // node.js module to run python script
 import cors from 'cors';  // node.js module for listening on different ports
+import dotenv from 'dotenv';
+
+dotenv.config(); // load .env file
 
 const app = express();
 
@@ -9,7 +12,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 // Define a POST endpoint at /api/extract-pdf
 app.post('/api/extract-pdf', (req, res) => {
-  console.log("Post endpoint successfully called")
+  console.log("API extraction route successfully called")
   
   // 1. Get the PDF URL from request body
   const { pdfUrl } = req.body;
@@ -21,7 +24,14 @@ app.post('/api/extract-pdf', (req, res) => {
   console.log("Processing PDF URL:", pdfUrl);
 
   // 2. Start a Python process to run "docling_runner.py" with the PDF URL as an argument
-  const python = spawn('python', ['docling_runner.py', pdfUrl]);
+  const python = spawn('python', ['docling_runner.py', pdfUrl],{
+      env: {
+        ...process.env,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+        VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+        VITE_SUPABASE_ANON_KEY: process.env.VITE_SUPABASE_ANON_KEY
+      }
+    });
   console.log("Docling python process sucessfully started");
 
   let data = '';

@@ -2,15 +2,17 @@ import sys
 import json
 from docling.document_converter import DocumentConverter
 import re
+import os
+from uuid import uuid4
+from openai import OpenAI
+from supabase import create_client, Client
+
 
 # Normalizes markdown by removing empty lines
+#    - Removes extra blank lines
+#    - Strips leading/trailing whitespace
+#    - Collapses multiple blank lines to a single blank line
 def normalize_markdown(md_text: str) -> str:
-    """
-    Normalize markdown text before chunking.
-    - Removes extra blank lines
-    - Strips leading/trailing whitespace
-    - Collapses multiple blank lines to a single blank line
-    """
     lines = md_text.splitlines()
     normalized_lines = []
 
@@ -27,12 +29,10 @@ def normalize_markdown(md_text: str) -> str:
     return "\n".join(normalized_lines)
 
 
+# Split markdown into chunks by headings, tables, and paragraphs while respecting max_chars per chunk.
+#     - Consecutive table lines are grouped into one chunk.
+#    - Headings start a new chunk.
 def chunk_markdown(md_text, max_chars=1000):
-    """
-    Split markdown into chunks by headings, tables, and paragraphs while respecting max_chars per chunk.
-    - Consecutive table lines are grouped into one chunk.
-    - Headings start a new chunk.
-    """
     chunks = []
     current_chunk = ""
     table_buffer = []
@@ -80,6 +80,30 @@ def chunk_markdown(md_text, max_chars=1000):
     return chunks
 
 
+# Embed the PDF chunks into Supabase
+def embed_and_store(chunks):
+    openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+    # Connect to Supabase
+    supabase_url = os.environ["VITE_SUPABASE_URL"]
+    supabase_key = os.environ["VITE_SUPABASE_ANON_KEY"]  # service key for writes
+    supabase: Client = create_client(supabase_url, supabase_key)
+
+    rows = []
+    for chunk in chunks:
+        embedding = openai_client.embeddings.create(
+            input=chunk,
+            model="text-embedding-3-large"
+        ).data[0].embedding
+
+        rows.append({
+            "embedding_id": str(uuid4()),
+            "content": chunk,
+            "embedding": embedding
+        })
+
+    # Batch insert into our table (e.g., 'insurance_docs')
+    supabase.table("sob_embeddings").insert(rows).execute()
 
 def main():
     if len(sys.argv) < 2:
@@ -98,6 +122,9 @@ def main():
 
     # Chunk the markdown
     chunks = chunk_markdown(markdown_text, max_chars=1000)
+
+    # Store embeddings and insert into Supabase
+    embed_and_store(chunks)
 
     # Ensure UTF-8 output so Node can read it
     sys.stdout.reconfigure(encoding='utf-8')
