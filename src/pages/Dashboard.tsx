@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,12 +28,15 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   // Fetch user profile on render
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    if (user) {
-      fetchUserProfile();
-      fetchUserSOB(user.id);
-    }
+    if (!user || hasFetched.current) return;
+    hasFetched.current = true;
+    fetchUserProfile();
+    fetchUserSOB(user.id);
   }, [user]);
+
 
   // Helper function that sends user's SOB URL for processing
   const fetchUserSOB = async (userId: string) => {
