@@ -140,11 +140,9 @@ const Onboarding = () => {
 
       if (insuranceError) throw insuranceError;
 
-      toast({
-        title: "Welcome to OwnCare!",
-        description: "Your profile has been set up successfully.",
-      });
-
+      // Set flag for dashboard to show success toast after loading
+      localStorage.setItem('justCompletedOnboarding', 'true');
+      
       navigate('/dashboard');
     } catch (error) {
       console.error('Error completing onboarding:', error);

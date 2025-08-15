@@ -53,7 +53,7 @@ const Chat = () => {
     setIsTyping(true);
 
     try {
-      // Call semantic search API to find relevant document chunks
+      // 1. Call semantic search API to find relevant document chunks
       const searchResponse = await fetch('http://localhost:3001/api/semantic-search', {
         method: 'POST',
         headers: {
@@ -61,25 +61,31 @@ const Chat = () => {
         },
         body: JSON.stringify({
           query: currentQuery,
-          topK: 3 // Get top 3 most relevant chunks
+          topK: 10
         }),
       });
 
       const searchResults = await searchResponse.json();
+
       let botResponseContent = '';
 
       if (searchResults.chunks && searchResults.chunks.length > 0) {
-        botResponseContent = `Based on your insurance plan documents, here's what I found:\n\n`;
+        // Step 2: Combine chunks into one context string for LLM
+        const contextText = searchResults.chunks
+          .map((chunk: any, idx: number) => `(${idx + 1}) ${chunk.content}`)
+          .join('\n\n');
 
-        searchResults.chunks.forEach((result: any, index: number) => {
-          botResponseContent += `**Relevant Information ${index + 1}**:\n${result.content}\n\n`;
+        // Step 3: Call LLM API with query + context
+        const llmResponse = await fetch('http://localhost:3001/api/RAGresponse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contextText, userQuestion: currentQuery })
         });
 
-        botResponseContent += `\nThis information comes from your insurance plan documents. Is there anything specific you'd like me to clarify about these details?`;
-      } else {
-        botResponseContent = `I couldn't find specific information about your query in your insurance plan documents.`;
-      }
-
+        const llmData = await llmResponse.json();
+        botResponseContent = llmData.choices[0].message.content;
+      } 
 
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -87,15 +93,15 @@ const Chat = () => {
         sender: 'bot',
         timestamp: new Date(),
       };
-      
+
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
       console.error('Error calling semantic search:', error);
-      
-      // Error fallback response
+
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I'm having trouble accessing your plan information right now. Please try again in a moment, or contact your insurance company directly for immediate assistance.",
+        content: "I'm sorry, I'm having trouble accessing your plan information right now."
+        + "Please try again in a moment, or contact your insurance company directly for immediate assistance.",
         sender: 'bot',
         timestamp: new Date(),
       };

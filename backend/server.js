@@ -84,7 +84,7 @@ app.post('/api/extract-pdf', (req, res) => {
 app.post('/api/semantic-search', async (req, res) => {
   console.log("Semantic search route successfully called");
 
-  const { query, topK = 5 } = req.body;
+  const { query, topK = 10 } = req.body; // if no topK chunks mentioned, we will use 5
 
   if (!query) {
     return res.status(400).json({ success: false, error: 'Query is required' });
@@ -106,11 +106,66 @@ app.post('/api/semantic-search', async (req, res) => {
     });
 
     if (error) throw error;
-    console.log("Chunks returned from Supabase RPC:", chunks);
+    console.log(
+      "Chunks returned from Supabase RPC:\n" +
+      chunks
+        .map((chunk, idx) => `\x1b[1mChunk ${idx + 1}:\x1b[0m\n${chunk.content}`)
+        .join('\n\n')
+    );
+
+
+
     res.json({ chunks });
   } catch (err) {
     console.error("Error in semantic search:", err);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// ROUTE 3: Generate AI response given chunks
+app.post("/api/RAGresponse", async (req, res) => {
+  try {
+    console.log("RAGresponse route successfully called")
+    const { contextText, userQuestion } = req.body;
+
+    if (!contextText || !userQuestion) {
+      return res.status(400).json({ error: "Both contextText and userQuestion are required" });
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+            You are an insurance assistant. Your primary goal is to answer the user's questions using the provided insurance plan excerpts (the context). 
+            - Use the context whenever possible. 
+            - If the context doesn't fully answer the question, provide helpful guidance or general knowledge, 
+              but clearly indicate that the information is not directly from the user's current insurance plan's documents. 
+            - Be concise, clear, and professional.
+            `
+          },
+          {
+            role: "user",
+            content: `Context:\n${contextText}\n\nUser Question: ${userQuestion}`,
+          },
+        ],
+        temperature: 0.1,
+      }),
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error generating LLM response:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

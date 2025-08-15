@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useNavigate } from 'react-router-dom';
+import { ExternalLink } from 'lucide-react';
 
 // Defined type for user profile
 type UserProfile = {
@@ -17,6 +18,7 @@ type UserProfile = {
   plan_name: string;
   plan_type: string;
   plan_number: string;
+  sob_url: string;
 }
 
 const Dashboard = () => {
@@ -26,6 +28,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [parsingPDF, setParsingPDF] = useState(false);
 
   // Fetch user profile on render
   const hasFetched = useRef(false);
@@ -33,8 +36,34 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user || hasFetched.current) return;
     hasFetched.current = true;
-    fetchUserProfile();
-    fetchUserSOB(user.id);
+    
+    const initializeDashboard = async () => {
+      try {
+        await fetchUserProfile();
+        await fetchUserSOB(user.id);
+        
+        // Check if we just completed onboarding and display the toast notification
+        const justCompleted = localStorage.getItem('justCompletedOnboarding');
+        if (justCompleted) {
+          localStorage.removeItem('justCompletedOnboarding');
+          toast({
+            title: "Welcome to OwnCare!",
+            description: "Your profile has been set up successfully.",
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        toast({
+          title: "Error loading dashboard",
+          description: "Please try refreshing the page",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializeDashboard();
   }, [user]);
 
 
@@ -74,6 +103,8 @@ const Dashboard = () => {
 
       // Step 3: Send PDF URL for parsing only if no chunks exist
       console.log("No existing chunks found. Now attempting to parse PDF...");
+      setParsingPDF(true); // Start parsing loading state
+      
       const resp = await fetch('http://localhost:3001/api/extract-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,6 +122,8 @@ const Dashboard = () => {
     } catch (err) {
       console.error("Error fetching user SOB:", err);
       throw err;
+    } finally {
+      setParsingPDF(false); // End parsing loading state
     }
   };
 
@@ -125,7 +158,8 @@ const Dashboard = () => {
           insurance_plans (
             plan_name,
             plan_type,
-            plan_number
+            plan_number,
+            sob_url
           )
         `)
         .eq('user_id', user?.id) // user_insurance.user_id = user.id
@@ -151,6 +185,7 @@ const Dashboard = () => {
         plan_name: (insuranceData.insurance_plans as any).plan_name,
         plan_type: (insuranceData.insurance_plans as any).plan_type,
         plan_number: (insuranceData.insurance_plans as any).plan_number,
+        sob_url: (insuranceData.insurance_plans as any).sob_url,
         //plan_description: (insuranceData.insurance_plans as any).description,
       });
 
@@ -161,8 +196,7 @@ const Dashboard = () => {
         description: "Please try refreshing the page",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      throw error; // Re-throw to be handled by the caller
     }
   };
 
@@ -193,7 +227,16 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+          {parsingPDF ? (
+            <div className="space-y-2">
+              <p className="text-muted-foreground">Processing your insurance plan...</p>
+              <p className="text-sm text-muted-foreground/80">
+                One moment, we're parsing and analyzing your insurance plan to enable personalized assistance...
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          )}
         </div>
       </div>
     );
@@ -235,25 +278,27 @@ const Dashboard = () => {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Profile Card */}
-            <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <span>Your Profile</span>
-                </CardTitle>
-                <CardDescription>Your account and personal information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Full Name</p>
-                  <p className="font-medium">{profile?.full_name}</p>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{profile?.email}</p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Profile Card */}
+          <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between md:pt-2">
+                <span>Your Profile</span>
+              </CardTitle>
+              <CardDescription className="md:pt-1">
+                Your account and personal information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Full Name</p>
+                <p className="font-medium">{profile?.full_name}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium">{profile?.email}</p>
+              </div>
+            </CardContent>
+          </Card>
 
             {/* Insurance Card */}
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
@@ -287,6 +332,21 @@ const Dashboard = () => {
                     <Badge variant="secondary">{profile?.plan_type}</Badge>
                   </div>
                 </div>
+                
+                {/* Summary of Benefits Link */}
+                {profile?.sob_url && (
+                  <div className="pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(profile.sob_url, '_blank')}
+                      className="w-full flex items-center justify-center space-x-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>View Summary of Benefits</span>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
