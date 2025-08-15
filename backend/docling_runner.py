@@ -116,15 +116,15 @@ def main():
     result = conv.convert(pdf_path)
     doc = result.document
 
-    # Convert result to markdown
+    # 1. Convert result to markdown
     markdown_text = doc.export_to_markdown()
     # Normalize the markdown
     markdown_text = normalize_markdown(markdown_text)
 
-    # Chunk the markdown
+    # 2. Chunk the markdown
     chunks = chunk_markdown(markdown_text, max_chars=1000)
 
-    # Store embeddings and insert into Supabase
+    # 3. Store embeddings and insert into Supabase
     embed_and_store(chunks, pdf_path)
 
     # Ensure UTF-8 output so Node can read it

@@ -48,20 +48,62 @@ const Chat = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentQuery = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response (replace with actual AI integration later)
-    setTimeout(() => {
+    try {
+      // Call semantic search API to find relevant document chunks
+      const searchResponse = await fetch('http://localhost:3001/api/semantic-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: currentQuery,
+          topK: 3 // Get top 3 most relevant chunks
+        }),
+      });
+
+      const searchResults = await searchResponse.json();
+      let botResponseContent = '';
+
+      if (searchResults.chunks && searchResults.chunks.length > 0) {
+        botResponseContent = `Based on your insurance plan documents, here's what I found:\n\n`;
+
+        searchResults.chunks.forEach((result: any, index: number) => {
+          botResponseContent += `**Relevant Information ${index + 1}**:\n${result.content}\n\n`;
+        });
+
+        botResponseContent += `\nThis information comes from your insurance plan documents. Is there anything specific you'd like me to clarify about these details?`;
+      } else {
+        botResponseContent = `I couldn't find specific information about your query in your insurance plan documents.`;
+      }
+
+
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I understand you're asking about your healthcare plan. While I'm still learning to provide specific plan details, I can help you with general information about insurance benefits, coverage types, and guide you to the right resources. For specific questions about your plan, I recommend contacting your insurance company directly or checking your member portal. Is there a particular aspect of your healthcare coverage you'd like to understand better?",
+        content: botResponseContent,
         sender: 'bot',
         timestamp: new Date(),
       };
+      
       setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Error calling semantic search:', error);
+      
+      // Error fallback response
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, I'm having trouble accessing your plan information right now. Please try again in a moment, or contact your insurance company directly for immediate assistance.",
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -134,7 +176,34 @@ const Chat = () => {
                           {message.sender === 'bot' ? 'OwnCare Assistant' : 'You'}
                         </span>
                       </div>
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {message.content.split('\n').map((line, index) => {
+                          // Handle bold text formatting
+                          if (line.startsWith('**') && line.endsWith('**')) {
+                            return (
+                              <div key={index} className="font-semibold mt-2 mb-1">
+                                {line.replace(/\*\*/g, '')}
+                              </div>
+                            );
+                          }
+                          // Handle bullet points
+                          if (line.startsWith('•')) {
+                            return (
+                              <div key={index} className="ml-4 mb-1">
+                                {line}
+                              </div>
+                            );
+                          }
+                          // Regular lines
+                          return line ? (
+                            <div key={index} className="mb-1">
+                              {line}
+                            </div>
+                          ) : (
+                            <div key={index} className="mb-2"></div>
+                          );
+                        })}
+                      </div>
                       <p className="text-xs opacity-70">
                         {message.timestamp.toLocaleTimeString([], {
                           hour: '2-digit',
