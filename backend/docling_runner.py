@@ -81,7 +81,7 @@ def chunk_markdown(md_text, max_chars=1000):
 
 
 # Embed the PDF chunks into Supabase
-def embed_and_store(chunks):
+def embed_and_store(chunks, sob_url: str):
     openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     # Connect to Supabase
@@ -99,7 +99,8 @@ def embed_and_store(chunks):
         rows.append({
             "embedding_id": str(uuid4()),
             "content": chunk,
-            "embedding": embedding
+            "embedding": embedding,
+            "sob_url": sob_url
         })
 
     # Batch insert into our table (e.g., 'insurance_docs')
@@ -124,7 +125,7 @@ def main():
     chunks = chunk_markdown(markdown_text, max_chars=1000)
 
     # Store embeddings and insert into Supabase
-    embed_and_store(chunks)
+    embed_and_store(chunks, pdf_path)
 
     # Ensure UTF-8 output so Node can read it
     sys.stdout.reconfigure(encoding='utf-8')

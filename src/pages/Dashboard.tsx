@@ -42,7 +42,7 @@ const Dashboard = () => {
   const fetchUserSOB = async (userId: string) => {
     try {
       // Step 1: Query for sob_url
-      const { data, error } = await supabase
+      const { data: planData, error: planError } = await supabase
         .from("user_insurance")
         .select(`
           insurance_plans (
@@ -52,20 +52,31 @@ const Dashboard = () => {
         .eq("user_id", userId)
         .single();
 
-      if (error) throw error;
+      if (planError) throw planError;
 
-      // Step 2: Extract the URL
-      const sobUrl = (data.insurance_plans as any)?.sob_url;
-      console.log("sobURL: " + sobUrl)
+      const sobUrl = (planData.insurance_plans as any)?.sob_url;
+      console.log("sobURL: " + sobUrl);
       if (!sobUrl) throw new Error("No SOB URL found for user");
 
-      // Step 3: Send PDF URL for parsing
-      console.log("Now attempting to parse PDF...")
+      // Step 2: Check if chunks already exist for this SOB URL
+      const { data: existingChunks, error: chunksError } = await supabase
+        .from("sob_embeddings")
+        .select("embedding_id")  // just need to check existence
+        .eq("sob_url", sobUrl)
+        .limit(1);
+
+      if (chunksError) throw chunksError;
+
+      if (existingChunks && existingChunks.length > 0) {
+        console.log("Chunks already exist for this SOB URL. Skipping PDF parsing.");
+        return existingChunks; // or return early with whatever info you need
+      }
+
+      // Step 3: Send PDF URL for parsing only if no chunks exist
+      console.log("No existing chunks found. Now attempting to parse PDF...");
       const resp = await fetch('http://localhost:3001/api/extract-pdf', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdfUrl: sobUrl }),
       });
 
@@ -74,11 +85,15 @@ const Dashboard = () => {
       const result = await resp.json();
       console.log('Extraction result:', result);
 
-        // TODO: Parse JSON and send to your chatbot context
+      // TODO: Parse JSON and send to your chatbot context
+      return result;
+
     } catch (err) {
       console.error("Error fetching user SOB:", err);
+      throw err;
     }
   };
+
 
 
   const fetchUserProfile = async () => {
