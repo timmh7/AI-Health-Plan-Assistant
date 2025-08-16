@@ -20,26 +20,16 @@ const supabase = createClient(
 
 const app = express();  // Initialize express for routes
 
-// Configure CORS for both development and production
-const allowedOrigins = [
-  'http://localhost:8080', // Local development
-  'https://https://owncare.onrender.com', // Replace with your actual Render frontend URL
-];
+app.use(express.json());
 
-app.use(cors({ 
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true 
-}));
-app.use(express.json()); // Middleware to parse JSON bodies
+// Temporary: allow all origins
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  next();
+});
+
 
 
 // ------------------- ROUTES -------------------  //
