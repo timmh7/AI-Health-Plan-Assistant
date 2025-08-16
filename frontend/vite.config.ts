@@ -23,11 +23,6 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    define: {
-      // Expose env variables to the client
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
-      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
-    },
-    envDir: path.resolve(__dirname, '../'), // Tell Vite to look for .env files in parent directory
+    envDir: path.resolve(__dirname, './'), // Tell Vite to look for .env files in parent directory
   };
 });
