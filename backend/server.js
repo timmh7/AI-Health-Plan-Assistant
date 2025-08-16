@@ -4,10 +4,15 @@ import cors from 'cors';  // node.js module for listening on different ports
 import dotenv from 'dotenv';
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ------------------- INITIALIZATION -------------------  //
-dotenv.config(); // Initialize .env file
+dotenv.config({ path: path.join(__dirname, '../.env') }); // Load .env from root directory
 
 const openai_client = new OpenAI({  // Initialize openAI
   apiKey: process.env.OPENAI_API_KEY
@@ -84,10 +89,10 @@ app.post('/api/extract-pdf', (req, res) => {
 app.post('/api/semantic-search', async (req, res) => {
   console.log("Semantic search route successfully called");
 
-  const { query, topK = 10 } = req.body; // if no topK chunks mentioned, we will use 5
+  const { query, topK = 10, sob_url } = req.body; // add sobUrl
 
-  if (!query) {
-    return res.status(400).json({ success: false, error: 'Query is required' });
+  if (!query || !sob_url) {
+    return res.status(400).json({ success: false, error: 'Query and sobUrl are required' });
   }
 
   try {
@@ -99,21 +104,21 @@ app.post('/api/semantic-search', async (req, res) => {
     })).data[0].embedding;
 
     // 2. Query Supabase embeddings table using vector similarity
-    // Assuming you have pgvector installed and your embedding column is a vector type
+    // You need to update your RPC to also filter by sob_url
     const { data: chunks, error } = await supabase.rpc('match_embeddings', {
       query_embedding: queryEmbedding,
-      match_count: topK
+      match_count: topK,
+      target_sob_url: sob_url,
     });
 
     if (error) throw error;
+
     console.log(
       "Chunks returned from Supabase RPC:\n" +
       chunks
         .map((chunk, idx) => `\x1b[1mChunk ${idx + 1}:\x1b[0m\n${chunk.content}`)
         .join('\n\n')
     );
-
-
 
     res.json({ chunks });
   } catch (err) {

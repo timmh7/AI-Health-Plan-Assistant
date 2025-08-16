@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [parsingPDF, setParsingPDF] = useState(false);
+  const [sobUrl, setSobUrl] = useState<string | null>(null);
 
   // Fetch user profile on render
   const hasFetched = useRef(false);
@@ -51,13 +52,18 @@ const Dashboard = () => {
             description: "Your profile has been set up successfully.",
           });
         }
-      } catch (error) {
-        console.error('Error initializing dashboard:', error);
-        toast({
-          title: "Error loading dashboard",
-          description: "Please try refreshing the page",
-          variant: "destructive",
-        });
+      } catch (error: any) {
+        // Check if it's the "no profile yet" error
+        if (error?.code === 'PGRST116') {
+          console.log("Ignore errrors: New account creation, initializing dashboard is still in process...");
+        } else {
+          console.error('Error initializing dashboard:', error);
+          toast({
+            title: "Error loading dashboard",
+            description: "Please try refreshing the page",
+            variant: "destructive",
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -86,6 +92,9 @@ const Dashboard = () => {
       const sobUrl = (planData.insurance_plans as any)?.sob_url;
       console.log("sobURL: " + sobUrl);
       if (!sobUrl) throw new Error("No SOB URL found for user");
+
+      // Store SOB URL in state for loading screen access
+      setSobUrl(sobUrl);
 
       // Step 2: Check if chunks already exist for this SOB URL
       const { data: existingChunks, error: chunksError } = await supabase
@@ -228,11 +237,28 @@ const Dashboard = () => {
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           {parsingPDF ? (
-            <div className="space-y-2">
-              <p className="text-muted-foreground">Processing your insurance plan...</p>
-              <p className="text-sm text-muted-foreground/80">
-                One moment, we're parsing and analyzing your insurance plan to enable personalized assistance...
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-muted-foreground">Processing your insurance plan...</p>
+                <p className="text-sm text-muted-foreground/80">
+                  One moment, we're parsing and analyzing your insurance plan to enable personalized assistance...
+                </p>
+              </div>
+              {sobUrl && (
+                <div className="flex flex-col items-center space-y-3">
+                  <p className="text-sm text-muted-foreground/80">
+                    For now, please take a look at your summary of benefits here:
+                  </p>
+                  <Button
+                    variant="healthcare"
+                    onClick={() => window.open(sobUrl, '_blank')}
+                    className="flex items-center space-x-2"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>View Summary of Benefits</span>
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-muted-foreground">Loading your dashboard...</p>
@@ -339,7 +365,7 @@ const Dashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(profile.sob_url, '_blank')}
+                      onClick={() => window.open(sobUrl, '_blank')}
                       className="w-full flex items-center justify-center space-x-2"
                     >
                       <ExternalLink className="w-4 h-4" />

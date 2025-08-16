@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, Bot, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ const Chat = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [userSOB, setUserSOB] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -34,8 +36,39 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    // Scroll to bottom whenever messages change
     scrollToBottom();
-  }, [messages]);
+
+    // Fetch user SOB only if user exists and SOB hasn't been fetched yet
+    if (user && userSOB === null) {
+      const loadUserSOB = async () => {
+        try {
+          const sobUrl = await fetchUserSOB(user.id);
+          setUserSOB(sobUrl);
+        } catch (error) {
+          console.error('Error fetching user SOB:', error);
+          setUserSOB(null);
+        }
+      };
+      loadUserSOB();
+    }
+  }, [user, messages]);
+
+
+  const fetchUserSOB = async (userId: string) => {
+    const { data: planData, error: planError } = await supabase
+      .from("user_insurance")
+      .select(`insurance_plans(sob_url)`)
+      .eq("user_id", userId)
+      .single();
+
+    if (planError) throw planError;
+
+    const sobUrl = (planData?.insurance_plans as any)?.sob_url;
+    if (!sobUrl) throw new Error("No SOB URL found for user");
+
+    return sobUrl;
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
@@ -61,7 +94,8 @@ const Chat = () => {
         },
         body: JSON.stringify({
           query: currentQuery,
-          topK: 10
+          topK: 10,
+          sob_url: userSOB
         }),
       });
 

@@ -30,6 +30,7 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<InsuranceCompany[]>([]);
   const [plans, setPlans] = useState<InsurancePlan[]>([]);
+  const [hasExistingInsurance, setHasExistingInsurance] = useState(false);
 
   // Store insurance company, metal level, and plan
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -42,7 +43,27 @@ const Onboarding = () => {
     console.log("Selected plan ID:", selectedPlan);
       }
     fetchCompanies();
+    checkExistingInsurance();
   }, [selectedPlan]);
+
+  // Check if user already has insurance data (coming from dashboard to change plan)
+  const checkExistingInsurance = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_insurance')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      // If we get data without error, user has existing insurance
+      setHasExistingInsurance(!!data && !error);
+    } catch (error) {
+      // If there's an error (like no record found), user doesn't have existing insurance
+      setHasExistingInsurance(false);
+    }
+  };
 
   // Helper function to grab companies
   const fetchCompanies = async () => {
@@ -186,14 +207,16 @@ const Onboarding = () => {
           {step === 1 && (
             <Card className="shadow-[var(--shadow-card)] border-0 bg-gradient-to-br from-card to-card/50">
               <CardHeader className="text-center relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/dashboard')}
-                  className="absolute left-0 top-0 p-2 text-3xl hover:bg-transparent hover:text-inherit hover:text-blue-500"
-                >
-                  ←
-                </Button>
+                {hasExistingInsurance && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/dashboard')}
+                    className="absolute left-0 top-0 p-2 text-3xl hover:bg-transparent hover:text-inherit hover:text-blue-500"
+                  >
+                    ←
+                  </Button>
+                )}
                 <CardTitle>Select your insurance company</CardTitle>
                 <CardDescription>
                   Choose your current health insurance provider
