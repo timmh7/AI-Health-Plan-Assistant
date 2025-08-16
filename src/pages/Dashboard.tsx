@@ -114,7 +114,7 @@ const Dashboard = () => {
       console.log("No existing chunks found. Now attempting to parse PDF...");
       setParsingPDF(true); // Start parsing loading state
       
-      const resp = await fetch('http://localhost:3001/api/extract-pdf', {
+      const resp = await fetch('/api/extract-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdfUrl: sobUrl }),
@@ -135,7 +135,6 @@ const Dashboard = () => {
       setParsingPDF(false); // End parsing loading state
     }
   };
-
 
 
   const fetchUserProfile = async () => {

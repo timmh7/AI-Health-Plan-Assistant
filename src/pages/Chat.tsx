@@ -87,7 +87,7 @@ const Chat = () => {
 
     try {
       // 1. Call semantic search API to find relevant document chunks
-      const searchResponse = await fetch('http://localhost:3001/api/semantic-search', {
+      const searchResponse = await fetch('/api/semantic-search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ const Chat = () => {
           .join('\n\n');
 
         // Step 3: Call LLM API with query + context
-        const llmResponse = await fetch('http://localhost:3001/api/RAGresponse', {
+        const llmResponse = await fetch('/api/RAGresponse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -218,14 +218,91 @@ const Chat = () => {
                       </div>
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
                         {message.content.split('\n').map((line, index) => {
-                          // Handle bold text formatting
-                          if (line.startsWith('**') && line.endsWith('**')) {
+                          // Handle bold text formatting (both full lines and inline)
+                          if (line.startsWith('**') && line.endsWith('**') && !line.includes('**', 2)) {
+                            // Full line bold
                             return (
                               <div key={index} className="font-semibold mt-2 mb-1">
                                 {line.replace(/\*\*/g, '')}
                               </div>
                             );
                           }
+                          
+                          // Handle inline bold text and links
+                          if (line.includes('**') || line.includes('[')) {
+                            let parts: (string | JSX.Element)[] = [];
+                            let remaining = line;
+                            let partKey = 0;
+                            
+                            while (remaining.length > 0) {
+                              // Check for markdown links first: [text](url)
+                              const linkMatch = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/);
+                              if (linkMatch) {
+                                const beforeLink = remaining.substring(0, linkMatch.index);
+                                const linkText = linkMatch[1];
+                                const linkUrl = linkMatch[2];
+                                
+                                // Add text before link (handle bold formatting in it)
+                                if (beforeLink) {
+                                  if (beforeLink.includes('**')) {
+                                    const boldParts = beforeLink.split(/(\*\*.*?\*\*)/g);
+                                    boldParts.forEach(part => {
+                                      if (part.startsWith('**') && part.endsWith('**')) {
+                                        parts.push(<strong key={partKey++}>{part.replace(/\*\*/g, '')}</strong>);
+                                      } else if (part) {
+                                        parts.push(part);
+                                      }
+                                    });
+                                  } else {
+                                    parts.push(beforeLink);
+                                  }
+                                }
+                                
+                                // Add clickable link
+                                parts.push(
+                                  <a 
+                                    key={partKey++} 
+                                    href={linkUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 hover:text-blue-700 underline"
+                                  >
+                                    {linkText}
+                                  </a>
+                                );
+                                
+                                remaining = remaining.substring(linkMatch.index! + linkMatch[0].length);
+                              } else {
+                                // Check for bold text: **text**
+                                const boldMatch = remaining.match(/\*\*([^*]+)\*\*/);
+                                if (boldMatch) {
+                                  const beforeBold = remaining.substring(0, boldMatch.index);
+                                  const boldText = boldMatch[1];
+                                  
+                                  // Add text before bold
+                                  if (beforeBold) {
+                                    parts.push(beforeBold);
+                                  }
+                                  
+                                  // Add bold text
+                                  parts.push(<strong key={partKey++}>{boldText}</strong>);
+                                  
+                                  remaining = remaining.substring(boldMatch.index! + boldMatch[0].length);
+                                } else {
+                                  // No more special formatting, add remaining text
+                                  parts.push(remaining);
+                                  remaining = '';
+                                }
+                              }
+                            }
+                            
+                            return (
+                              <div key={index} className={line.startsWith('•') ? "ml-4 mb-1" : "mb-1"}>
+                                {parts}
+                              </div>
+                            );
+                          }
+                          
                           // Handle bullet points
                           if (line.startsWith('•')) {
                             return (
