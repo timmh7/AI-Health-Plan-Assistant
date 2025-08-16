@@ -31,11 +31,10 @@ app.use(function(req, res, next) {
 });
 
 
-
 // ------------------- ROUTES -------------------  //
 // ROUTE 1: Runs a pdf URL into docling_runner.py script to return as markdown
 app.post('/api/extract-pdf', (req, res) => {
-  console.log("API extraction route successfully called")
+  console.log("PDF parsing + chunking route successfully called")
   
   // 1. Get the PDF URL from request body
   const { pdfUrl } = req.body;
@@ -44,7 +43,8 @@ app.post('/api/extract-pdf', (req, res) => {
     return res.status(400).json({ success: false, error: 'PDF URL is required' });
   }
 
-  console.log("Processing PDF URL:", pdfUrl);
+  console.log("Now processing PDF URL:", pdfUrl);
+  const startTime = Date.now(); // measuring when docling python script started running
 
   // 2. Start a Python process to run "docling_runner.py" with the PDF URL as an argument
   const python = spawn('python', ['docling_runner.py', pdfUrl],{
@@ -72,6 +72,7 @@ app.post('/api/extract-pdf', (req, res) => {
 
   // 3. Once python script finishes running
   python.on('close', (code) => {
+    const endTime = Date.now(); // measure when docling python script finishes running
     console.log('Python exited with code:', code);
     // console.log('Python stdout:', data);
     // console.log('Python stderr:', error);
@@ -79,8 +80,11 @@ app.post('/api/extract-pdf', (req, res) => {
     // Log memory usage (see how much RAM the PDF file processing used)
     const mem = process.memoryUsage();
     const rssMB = (mem.rss / 1024 / 1024).toFixed(2);
+    console.log(`Total PDF parsing + chunking RAM Usage (MB): ${rssMB}`);
 
-    console.log(`RAM Usage (MB) - RSS: ${rssMB}`);
+    // Log route's runtime duration
+    const durationSeconds = ((endTime - startTime) / 1000).toFixed(2);
+    console.log(`Total PDF parsing + chunking runtime: ${durationSeconds} seconds`);
 
 
     if (code !== 0) {
