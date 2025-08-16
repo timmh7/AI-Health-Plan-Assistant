@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file from parent directory
-  const env = loadEnv(mode, path.resolve(__dirname, '../'), '');
+  const env = loadEnv(mode, path.resolve(__dirname, './'), '');
   
   return {
     server: {

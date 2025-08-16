@@ -7,6 +7,7 @@ import { AuthGuard } from '@/components/AuthGuard';
 import { useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft, Bot, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 interface Message {
   id: string;
@@ -87,7 +88,7 @@ const Chat = () => {
 
     try {
       // 1. Call semantic search API to find relevant document chunks
-      const searchResponse = await fetch('/api/semantic-search', {
+      const searchResponse = await fetch(`${API_BASE}/api/semantic-search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +111,7 @@ const Chat = () => {
           .join('\n\n');
 
         // Step 3: Call LLM API with query + context
-        const llmResponse = await fetch('/api/RAGresponse', {
+        const llmResponse = await fetch(`${API_BASE}/api/RAGresponse`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

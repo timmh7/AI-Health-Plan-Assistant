@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
 // Defined type for user profile
 type UserProfile = {
@@ -114,11 +115,12 @@ const Dashboard = () => {
       console.log("No existing chunks found. Now attempting to parse PDF...");
       setParsingPDF(true); // Start parsing loading state
       
-      const resp = await fetch('/api/extract-pdf', {
+      const resp = await fetch(`${API_BASE}/api/extract-pdf`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pdfUrl: sobUrl }),
       });
+
 
       if (!resp.ok) throw new Error('Failed to extract PDF');
 

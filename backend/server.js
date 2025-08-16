@@ -7,18 +7,13 @@ import { createClient } from "@supabase/supabase-js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Get current directory for ES modules
+// Initialize .env file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
-// ------------------- INITIALIZATION -------------------  //
-dotenv.config({ path: path.join(__dirname, '../.env') }); // Load .env from root directory
-
-const openai_client = new OpenAI({  // Initialize openAI
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-const supabase = createClient(  // Intiialize supabase
+// Initialize supabase
+const supabase = createClient( 
   process.env.VITE_SUPABASE_URL,
   process.env.VITE_SUPABASE_ANON_KEY
 );
@@ -30,7 +25,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 
 // ------------------- ROUTES -------------------  //
-// ROUTE 1: Define a POST endpoint at /api/extract-pdf
+// ROUTE 1: Runs a pdf URL into docling_runner.py script to return as markdown
 app.post('/api/extract-pdf', (req, res) => {
   console.log("API extraction route successfully called")
   
@@ -85,7 +80,8 @@ app.post('/api/extract-pdf', (req, res) => {
   });
 });
 
-// ROUTE 2: Define a POST endpoint at /api/semantic-search
+
+// ROUTE 2: Returns topK matching PDF chunks given a user query
 app.post('/api/semantic-search', async (req, res) => {
   console.log("Semantic search route successfully called");
 
@@ -128,7 +124,7 @@ app.post('/api/semantic-search', async (req, res) => {
 });
 
 
-// ROUTE 3: Generate AI response given chunks
+// ROUTE 3: Generate AI response given PDF chunks as context
 app.post("/api/RAGresponse", async (req, res) => {
   try {
     console.log("RAGresponse route successfully called")
