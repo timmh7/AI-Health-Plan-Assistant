@@ -252,7 +252,7 @@ const Dashboard = () => {
                   <Button
                     variant="healthcare"
                     onClick={() => window.open(sobUrl, '_blank')}
-                    className="flex items-center space-x-2"
+                    className="flex items-center space-x-2 hover:scale-105 transition-transform duration-200 hover:shadow-lg"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>View Summary of Benefits</span>
@@ -414,7 +414,7 @@ const Dashboard = () => {
                 variant="healthcare" 
                 size="lg" 
                 onClick={handleStartChat}
-                className="px-8"
+                className="px-8 hover:scale-105 transition-transform duration-200 hover:shadow-lg"
               >
                 Start Conversation
               </Button>

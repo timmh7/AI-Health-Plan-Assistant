@@ -39,12 +39,10 @@ const Onboarding = () => {
 
   // 1. On render fetch all companies from our current database
   useEffect(() => {
-      if (selectedPlan) {
-    console.log("Selected plan ID:", selectedPlan);
-      }
+    if (!user) return;
     fetchCompanies();
     checkExistingInsurance();
-  }, [selectedPlan]);
+  }, [user]);
 
   // Check if user already has insurance data (coming from dashboard to change plan)
   const checkExistingInsurance = async () => {
@@ -53,12 +51,13 @@ const Onboarding = () => {
     try {
       const { data, error } = await supabase
         .from('user_insurance')
-        .select('id')
+        .select('user_id')
         .eq('user_id', user.id)
         .single();
 
       // If we get data without error, user has existing insurance
       setHasExistingInsurance(!!data && !error);
+      console.log("User has existing insurance?", hasExistingInsurance)
     } catch (error) {
       // If there's an error (like no record found), user doesn't have existing insurance
       setHasExistingInsurance(false);
@@ -411,6 +410,7 @@ const Onboarding = () => {
                     variant="healthcare"
                     onClick={handleComplete}
                     disabled={!selectedPlan || loading}
+                    className="hover:scale-105 transition-transform duration-200 hover:shadow-lg"
                   >
                     {loading ? (
                       <>
