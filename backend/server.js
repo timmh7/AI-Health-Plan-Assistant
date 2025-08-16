@@ -73,8 +73,15 @@ app.post('/api/extract-pdf', (req, res) => {
   // 3. Once python script finishes running
   python.on('close', (code) => {
     console.log('Python exited with code:', code);
-    console.log('Python stdout:', data);
-    console.log('Python stderr:', error);
+    // console.log('Python stdout:', data);
+    // console.log('Python stderr:', error);
+
+    // Log memory usage (see how much RAM the PDF file processing used)
+    const mem = process.memoryUsage();
+    const rssMB = (mem.rss / 1024 / 1024).toFixed(2);
+
+    console.log(`RAM Usage (MB) - RSS: ${rssMB}`);
+
 
     if (code !== 0) {
       return res.status(500).json({ success: false, error });
