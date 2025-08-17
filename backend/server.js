@@ -23,12 +23,18 @@ const app = express();  // Initialize express for routes
 app.use(express.json());
 
 // Temporary: allow all origins
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200); // terminate preflight request
+  }
+
   next();
 });
+
 
 
 // ------------------- ROUTES -------------------  //
@@ -189,6 +195,6 @@ app.post("/api/RAGresponse", async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log('Server listening on port 3001');
+app.listen(process.env.PORT || 3001, () => {
+  console.log(`Server listening on port ${process.env.PORT || 3001}`);
 });
