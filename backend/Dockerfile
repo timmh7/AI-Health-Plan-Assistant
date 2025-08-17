@@ -1,7 +1,7 @@
 # Use official Node.js LTS image
 FROM node:20
 
-# Install Python and pip
+# Install Python, venv, and pip
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
@@ -20,9 +20,16 @@ COPY package*.json ./
 # Install Node.js dependencies using npm ci for production builds
 RUN npm ci --production
 
-# Copy Python requirements and install Python dependencies
+# Copy Python requirements
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Create Python virtual environment and use it
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Upgrade pip and install Python dependencies inside the virtual environment
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of your backend code
 COPY . .
@@ -36,3 +43,4 @@ EXPOSE $PORT
 
 # Start the server
 CMD ["npm", "start"]
+
