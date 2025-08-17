@@ -75,7 +75,7 @@ app.post('/api/extract-pdf', (req, res) => {
     const endTime = Date.now(); // measure when docling python script finishes running
     console.log('Python exited with code:', code);
     // console.log('Python stdout:', data);
-    // console.log('Python stderr:', error);
+    console.log('Python stderr:', error);
 
     // Log memory usage (see how much RAM the PDF file processing used)
     const mem = process.memoryUsage();
