@@ -6,6 +6,7 @@ import os
 from uuid import uuid4
 from openai import OpenAI
 from supabase import create_client, Client
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 # Normalizes markdown by removing empty lines
@@ -79,6 +80,20 @@ def chunk_markdown(md_text, max_chars=1000):
 
     return chunks
 
+# Thread function used below in embed_and_store
+# Takes a chunk of text and generates embedding for the chunk
+def embed_chunk(chunk, sob_url, openai_client):
+    embedding = openai_client.embeddings.create(
+        input=chunk,
+        model="text-embedding-3-large"
+    ).data[0].embedding
+
+    return {
+        "embedding_id": str(uuid4()),
+        "content": chunk,
+        "embedding": embedding,
+        "sob_url": sob_url
+    }
 
 # Embed the PDF chunks into Supabase
 def embed_and_store(chunks, sob_url: str):
@@ -90,18 +105,11 @@ def embed_and_store(chunks, sob_url: str):
     supabase: Client = create_client(supabase_url, supabase_key)
 
     rows = []
-    for chunk in chunks:
-        embedding = openai_client.embeddings.create(
-            input=chunk,
-            model="text-embedding-3-large"
-        ).data[0].embedding
-
-        rows.append({
-            "embedding_id": str(uuid4()),
-            "content": chunk,
-            "embedding": embedding,
-            "sob_url": sob_url
-        })
+    # Use a ThreadPoolExecutor to run API calls concurrently
+    with ThreadPoolExecutor(max_workers=5) as executor:  # adjust max_workers as needed
+        futures = [executor.submit(embed_chunk, chunk, sob_url, openai_client) for chunk in chunks]
+        for future in as_completed(futures):
+            rows.append(future.result())
 
     # Batch insert into our table (e.g., 'insurance_docs')
     supabase.table("sob_embeddings").insert(rows).execute()
