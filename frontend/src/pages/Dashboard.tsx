@@ -276,8 +276,8 @@ const Dashboard = () => {
         <header className="border-b border-border/40 bg-card/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center shadow-[var(--shadow-healthcare)]">
-                <span className="text-sm font-bold text-primary-foreground">OC</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">OwnCare</h1>
@@ -392,8 +392,8 @@ const Dashboard = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-primary text-xl">🏥</span>
                   </div>
-                  <p className="font-medium">Find Providers</p>
-                  <p className="text-muted-foreground">Locate in-network doctors and specialists</p>
+                  <p className="font-medium">Understand Services</p>
+                  <p className="text-muted-foreground">Learn what services are covered</p>
                 </div>
                 <div className="space-y-2">
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">

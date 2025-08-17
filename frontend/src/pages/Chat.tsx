@@ -155,10 +155,10 @@ const Chat = () => {
   };
 
   const quickQuestions = [
-    "What's covered under my plan?",
-    "How do I find in-network providers?",
+    "What services are covered under my plan?",
+    "What prescription drugs are covered?",
     "What's my copay for specialist visits?",
-    "How do I file a claim?",
+    "Is dental/vision included in my plan?",
   ];
 
   const handleQuickQuestion = (question: string) => {
@@ -175,8 +175,8 @@ const Chat = () => {
               <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
                 <ArrowLeft className="w-4 h-4" />
               </Button>
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-glow rounded-lg flex items-center justify-center shadow-[var(--shadow-healthcare)]">
-                <span className="text-sm font-bold text-primary-foreground">OC</span>
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">OwnCare Assistant</h1>

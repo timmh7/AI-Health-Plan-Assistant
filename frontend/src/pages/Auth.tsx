@@ -32,8 +32,8 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Brand */}
           <div className="text-center space-y-4">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary-glow rounded-2xl flex items-center justify-center shadow-[var(--shadow-healthcare)]">
-              <span className="text-2xl font-bold text-primary-foreground">OC</span>
+            <div className="mx-auto w-20 h-20 flex items-center justify-center">
+              <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-20 h-20 object-contain" />
             </div>
             <div className="space-y-2">
               <h1 className="text-3xl font-bold text-foreground">Welcome to OwnCare</h1>

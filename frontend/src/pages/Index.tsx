@@ -77,7 +77,7 @@ const Index = () => {
             </div>
             <h3 className="text-xl font-semibold">Provider Network</h3>
             <p className="text-muted-foreground">
-              Find in-network doctors, specialists, and healthcare facilities near you
+              Compatible with 140+ insurance companies and 4,500+ healthcare plans
             </p>
           </div>
           
