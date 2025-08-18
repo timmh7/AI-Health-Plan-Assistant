@@ -30,8 +30,8 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16 text-center space-y-12">
         {/* Logo and Brand */}
         <div className="space-y-6">
-          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-primary to-primary-glow rounded-3xl flex items-center justify-center shadow-[var(--shadow-healthcare)]">
-            <span className="text-3xl font-bold text-primary-foreground">OC</span>
+          <div className="mx-auto w-24 h-24 flex items-center justify-center">
+            <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-24 h-24 object-contain" />
           </div>
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-bold text-foreground">
