@@ -16,6 +16,15 @@ Before setting up the project, make sure you have the following installed:
 
 ## Setup Instructions
 
+### Supabase Setup
+This is the longest part of the setup. You'll need to create a Supabase project and set up the database schema and functions.
+
+1. **Create a new Supabase project** at [supabase.com](https://supabase.com)
+2. **Set up the database schema** using the table definitions in [`supabase-schema.csv`](./supabase-schema.csv)
+3. **Add the custom functions** from [`supabase-functions.csv`](./supabase-functions.csv) to your project
+4. **Disable Row Level Security (RLS)** on your tables (you should enable RLS later, but for ease of setup you should disable for now)
+5. **Get your project credentials** from Settings → API for the environment variables below
+
 ### Environment Variables
 
 Before running the project, you'll need to set up environment variables for both frontend and backend.
