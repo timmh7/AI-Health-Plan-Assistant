@@ -22,7 +22,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: "Hello! I'm your OwnCare assistant. I can help you understand your insurance plan, find providers, check coverage, and answer questions about your benefits. What would you like to know?",
+      content: "Hello! I'm your HealthPlan AI assistant. I can help you understand your insurance plan, find providers, check coverage, and answer questions about your benefits. What would you like to know?",
       sender: 'bot',
       timestamp: new Date(),
     }
@@ -176,10 +176,10 @@ const Chat = () => {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-10 h-10 object-contain" />
+                <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">OwnCare Assistant</h1>
+                <h1 className="text-xl font-bold text-foreground">HealthPlan AI Assistant</h1>
                 <p className="text-sm text-muted-foreground">Your healthcare plan advisor</p>
               </div>
             </div>
@@ -214,7 +214,7 @@ const Chat = () => {
                           <User className="w-4 h-4" />
                         )}
                         <span className="text-sm font-medium">
-                          {message.sender === 'bot' ? 'OwnCare Assistant' : 'You'}
+                          {message.sender === 'bot' ? 'HealthPlan AI Assistant' : 'You'}
                         </span>
                       </div>
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -337,7 +337,7 @@ const Chat = () => {
                     <div className="bg-secondary text-secondary-foreground rounded-lg p-4 mr-4">
                       <div className="flex items-center space-x-2">
                         <Bot className="w-4 h-4" />
-                        <span className="text-sm font-medium">OwnCare Assistant</span>
+                        <span className="text-sm font-medium">HealthPlan AI Assistant</span>
                       </div>
                       <div className="flex space-x-1 mt-2">
                         <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>

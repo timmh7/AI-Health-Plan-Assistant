@@ -33,10 +33,10 @@ const Auth = () => {
           {/* Logo and Brand */}
           <div className="text-center space-y-4">
             <div className="mx-auto w-20 h-20 flex items-center justify-center">
-              <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-20 h-20 object-contain" />
+              <img src="/logo.png" alt="Logo" className="w-20 h-20 object-contain" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-foreground">Welcome to OwnCare</h1>
+              <h1 className="text-3xl font-bold text-foreground">Welcome to HealthPlan AI</h1>
               <p className="text-muted-foreground">Your personalized healthcare plan advisor</p>
             </div>
           </div>
@@ -74,15 +74,6 @@ const Auth = () => {
                   </>
                 )}
               </Button>
-
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  By continuing, you agree to our{' '}
-                  <a href="#" className="text-primary hover:underline">Terms of Service</a>{' '}
-                  and{' '}
-                  <a href="#" className="text-primary hover:underline">Privacy Policy</a>
-                </p>
-              </div>
             </CardContent>
           </Card>
 

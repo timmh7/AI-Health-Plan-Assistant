@@ -18,7 +18,7 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading OwnCare...</p>
+          <p className="text-muted-foreground">Loading HealthPlan AI...</p>
         </div>
       </div>
     );
@@ -31,11 +31,11 @@ const Index = () => {
         {/* Logo and Brand */}
         <div className="space-y-6">
           <div className="mx-auto w-24 h-24 flex items-center justify-center">
-            <img src="/owncare-logo.png" alt="OwnCare Logo" className="w-24 h-24 object-contain" />
+            <img src="/logo.png" alt="Logo" className="w-24 h-24 object-contain" />
           </div>
           <div className="space-y-4">
             <h1 className="text-5xl md:text-6xl font-bold text-foreground">
-              Welcome to <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">OwnCare</span>
+              Welcome to <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">HealthPlan AI</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Your AI-powered healthcare plan advisor. Get personalized answers about your insurance coverage, 
