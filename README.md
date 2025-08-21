@@ -1,14 +1,9 @@
-# OwnCare - Healthcare Plan Advisor
+https://owncare.onrender.com/
 
-Try it out here: https://owncare.onrender.com/
+AI health insurance plan assistant compatible with 4,500+ insurance plans from 140+ insurance companies.
+Designed to seamlessly allow users to better understand their healthcare plan.
 
-This is an AI assistant that is compatible with 4,500+ insurance plans from 140+ insurance companies.
 
-## Implementation Model:
-1. User finds and selects their specific insurance company + health care plan
-2. The system will process and parse insurance documents related to the selected plan
-3. Utilizing a RAG model, the AI will respond with full context of your plan's policies
----
 ## Prerequisites
 
 Before setting up the project, make sure you have the following installed:
@@ -18,7 +13,6 @@ Before setting up the project, make sure you have the following installed:
 - **Python** (version 3.8 or higher)
 - **pip** (Python package manager)
 
----
 
 ## Setup Instructions
 
@@ -43,7 +37,6 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_service_role_key
 ```
 
----
 
 ## Frontend Setup
 
@@ -61,7 +54,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_service_role_key
    ```bash
    npm run dev
    ```
----
+
 
 ## Backend Setup
 
@@ -86,7 +79,6 @@ VITE_SUPABASE_ANON_KEY=your_supabase_service_role_key
    npm start
    ```
 
----
 
 ## Technologies Used
 
